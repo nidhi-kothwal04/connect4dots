@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Connect 4 Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #222;
+      color: white;
+      flex-direction: column;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 80px);
+      grid-template-rows: repeat(6, 80px);
+      gap: 5px;
+      background: #005bbb;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .cell {
+      width: 80px;
+      height: 80px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .red {
+      background: red;
+    }
+
+    .yellow {
+      background: yellow;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 20px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #ff9800;
+      color: white;
+    }
+
+    button:hover {
+      background: #e68900;
+    }
+  </style>
+</head>
+<body>
+  <h1>Connect 4 Game</h1>
+  <div id="board"></div>
+  <div id="message">Player 🔴 Red's turn</div>
+  <button onclick="resetGame()">Restart</button>
+
+  <script>
+    const ROWS = 6;
+    const COLS = 7;
+    let board = [];
+    let currentPlayer = 'red';
+    const boardDiv = document.getElementById('board');
+    const message = document.getElementById('message');
+
+    function createBoard() {
+      boardDiv.innerHTML = '';
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.addEventListener('click', () => dropDisc(c));
+          boardDiv.appendChild(cell);
+        }
+      }
+    }
+
+    function dropDisc(col) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!board[r][col]) {
+          board[r][col] = currentPlayer;
+          const cell = document.querySelector(`.cell[data-row='${r}'][data-col='${col}']`);
+          cell.classList.add(currentPlayer);
+          if (checkWin(r, col)) {
+            message.textContent = `🎉 Player ${currentPlayer === 'red' ? '🔴 Red' : '🟡 Yellow'} wins!`;
+            disableBoard();
+            return;
+          }
+          currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+          message.textContent = `Player ${currentPlayer === 'red' ? '🔴 Red' : '🟡 Yellow'}'s turn`;
+          return;
+        }
+      }
+    }
+
+    function checkWin(row, col) {
+      return (
+        checkDirection(row, col, 1, 0) || // vertical
+        checkDirection(row, col, 0, 1) || // horizontal
+        checkDirection(row, col, 1, 1) || // diagonal down-right
+        checkDirection(row, col, 1, -1)   // diagonal down-left
+      );
+    }
+
+    function checkDirection(row, col, rowDir, colDir) {
+      let count = 1;
+
+      count += countCells(row, col, rowDir, colDir);
+      count += countCells(row, col, -rowDir, -colDir);
+
+      return count >= 4;
+    }
+
+    function countCells(row, col, rowDir, colDir) {
+      let r = row + rowDir;
+      let c = col + colDir;
+      let count = 0;
+
+      while (
+        r >= 0 && r < ROWS &&
+        c >= 0 && c < COLS &&
+        board[r][c] === currentPlayer
+      ) {
+        count++;
+        r += rowDir;
+        c += colDir;
+      }
+
+      return count;
+    }
+
+    function disableBoard() {
+      const cells = document.querySelectorAll('.cell');
+      cells.forEach(cell => cell.style.pointerEvents = 'none');
+    }
+
+    function resetGame() {
+      currentPlayer = 'red';
+      message.textContent = "Player 🔴 Red's turn";
+      createBoard();
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
